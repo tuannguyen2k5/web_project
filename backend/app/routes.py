@@ -172,11 +172,7 @@ def cancel_appointment(current_user, appointment_id):
         )
 
     Appointment.cancel(appointment_id)
-    updated_appt = Appointment.find_by_id(appointment_id)
-    return jsonify({
-        "message": "Appointment cancelled successfully.",
-        "appointment": updated_appt
-    }), 200
+    return "", 204
 
 # 7b. Edit Appointment (Patient / Owner) - PATCH /api/appointments/<int:appointment_id>
 @api_bp.patch('/appointments/<int:appointment_id>')
