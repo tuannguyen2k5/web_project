@@ -164,6 +164,26 @@ class Appointment:
         return row_count > 0
 
     @staticmethod
+    def update(appointment_id, doctor_id, date, time, reason):
+        """Update appointment fields (date, time, doctor, reason)."""
+        _, row_count = execute_db(
+            """UPDATE appointments
+               SET doctor_id = ?, date = ?, time = ?, reason = ?
+               WHERE id = ?""",
+            (doctor_id, date, time, reason, appointment_id)
+        )
+        return row_count > 0
+
+    @staticmethod
+    def cancel(appointment_id):
+        """Soft-cancel: set status = CANCELLED instead of deleting the row."""
+        _, row_count = execute_db(
+            "UPDATE appointments SET status = 'CANCELLED' WHERE id = ?",
+            (appointment_id,)
+        )
+        return row_count > 0
+
+    @staticmethod
     def delete(appointment_id):
         _, row_count = execute_db("DELETE FROM appointments WHERE id = ?", (appointment_id,))
         return row_count > 0

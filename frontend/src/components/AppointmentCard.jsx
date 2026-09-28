@@ -42,7 +42,7 @@ const formatDate = (dateStr) => {
   return dateStr;
 };
 
-const AppointmentCard = ({ appointment, onCancel, isCancelling = false }) => {
+const AppointmentCard = ({ appointment, onCancel, onEdit, isCancelling = false }) => {
   const statusInfo = statusConfig[appointment.status] || {
     label: appointment.status,
     className: 'badge-pending',
@@ -145,6 +145,17 @@ const AppointmentCard = ({ appointment, onCancel, isCancelling = false }) => {
               >
                 Xem chi tiết bác sĩ
               </Link>
+            )}
+
+            {/* Edit button — only for PENDING */}
+            {onEdit && appointment.status === 'PENDING' && (
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => onEdit(appointment)}
+              >
+                ✏️ Sửa lịch hẹn
+              </button>
             )}
 
             {onCancel && (appointment.status === 'PENDING' || appointment.status === 'CONFIRMED') && (

@@ -6,6 +6,27 @@ import Loading from '../components/Loading';
 
 const MORNING_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30'];
 const AFTERNOON_SLOTS = ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+const ALL_SLOTS = [...MORNING_SLOTS, ...AFTERNOON_SLOTS];
+
+/**
+ * Returns true if the given slot (HH:MM) on the given date string (YYYY-MM-DD)
+ * is already in the past relative to the current local time.
+ */
+const isSlotPast = (dateStr, slotTime) => {
+  const now = new Date();
+  const [h, m] = slotTime.split(':').map(Number);
+  const slotDate = new Date(dateStr);
+  slotDate.setHours(h, m, 0, 0);
+  return slotDate <= now;
+};
+
+/**
+ * Find the first future slot on today, or fall back to the first slot overall.
+ */
+const getDefaultTime = (dateStr) => {
+  const future = ALL_SLOTS.find((s) => !isSlotPast(dateStr, s));
+  return future || ALL_SLOTS[0];
+};
 
 const BookAppointment = () => {
   const { doctorId } = useParams();
@@ -21,7 +42,7 @@ const BookAppointment = () => {
   // Form states
   const today = new Date().toISOString().split('T')[0];
   const [date, setDate] = useState(today);
-  const [time, setTime] = useState('09:00');
+  const [time, setTime] = useState(() => getDefaultTime(today));
   const [reason, setReason] = useState('');
 
   useEffect(() => {
@@ -41,10 +62,25 @@ const BookAppointment = () => {
     }
   };
 
+  // When date changes, reset time to first available future slot
+  const handleDateChange = (newDate) => {
+    setDate(newDate);
+    const currentSlotPast = isSlotPast(newDate, time);
+    if (currentSlotPast) {
+      setTime(getDefaultTime(newDate));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!date || !time) {
       setError('Vui lòng chọn ngày và khung giờ khám.');
+      return;
+    }
+
+    // Client-side past check before sending to server
+    if (isSlotPast(date, time)) {
+      setError('⚠️ Khung giờ đã chọn đã qua. Vui lòng chọn ngày hoặc giờ trong tương lai.');
       return;
     }
 
@@ -67,6 +103,8 @@ const BookAppointment = () => {
     } catch (err) {
       if (err.status === 409 || err.code === 'appointment_conflict') {
         setError('⚠️ Bác sĩ đã có lịch hẹn khám vào khung giờ này. Vui lòng chọn khung giờ hoặc ngày khám khác.');
+      } else if (err.details?.datetime) {
+        setError(`⚠️ ${err.details.datetime}`);
       } else {
         setError(err.message || 'Đặt lịch thất bại. Vui lòng kiểm tra lại thông tin.');
       }
@@ -131,7 +169,7 @@ const BookAppointment = () => {
               className="form-control date-picker-input"
               min={today}
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => handleDateChange(e.target.value)}
               required
               disabled={submitting}
             />
@@ -139,38 +177,46 @@ const BookAppointment = () => {
 
           <div className="form-group">
             <label>2. Chọn khung giờ khám (*):</label>
-            
+
             <div className="slot-section">
               <span className="slot-period-title">🌅 Buổi sáng:</span>
               <div className="slots-grid">
-                {MORNING_SLOTS.map((slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    className={`slot-chip ${time === slot ? 'active' : ''}`}
-                    onClick={() => setTime(slot)}
-                    disabled={submitting}
-                  >
-                    {slot}
-                  </button>
-                ))}
+                {MORNING_SLOTS.map((slot) => {
+                  const past = isSlotPast(date, slot);
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      className={`slot-chip ${time === slot ? 'active' : ''} ${past ? 'slot-chip-disabled' : ''}`}
+                      onClick={() => !past && setTime(slot)}
+                      disabled={submitting || past}
+                      title={past ? 'Khung giờ này đã qua' : ''}
+                    >
+                      {slot}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div className="slot-section" style={{ marginTop: '0.85rem' }}>
               <span className="slot-period-title">🌇 Buổi chiều:</span>
               <div className="slots-grid">
-                {AFTERNOON_SLOTS.map((slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    className={`slot-chip ${time === slot ? 'active' : ''}`}
-                    onClick={() => setTime(slot)}
-                    disabled={submitting}
-                  >
-                    {slot}
-                  </button>
-                ))}
+                {AFTERNOON_SLOTS.map((slot) => {
+                  const past = isSlotPast(date, slot);
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      className={`slot-chip ${time === slot ? 'active' : ''} ${past ? 'slot-chip-disabled' : ''}`}
+                      onClick={() => !past && setTime(slot)}
+                      disabled={submitting || past}
+                      title={past ? 'Khung giờ này đã qua' : ''}
+                    >
+                      {slot}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
