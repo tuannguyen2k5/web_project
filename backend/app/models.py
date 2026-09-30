@@ -10,6 +10,10 @@ class User:
         return query_db("SELECT id, full_name, email, role, created_at FROM users WHERE id = ?", (user_id,), one=True)
 
     @staticmethod
+    def get_all_patients():
+        return query_db("SELECT id, full_name, email, created_at FROM users WHERE role = 'PATIENT' ORDER BY id DESC")
+
+    @staticmethod
     def create(full_name, email, password_hash, role='PATIENT'):
         last_id, _ = execute_db(
             "INSERT INTO users (full_name, email, password_hash, role) VALUES (?, ?, ?, ?)",
@@ -99,6 +103,24 @@ class Appointment:
         return query_db(sql, (doctor_id, date, time), one=True) is not None
 
     @staticmethod
+    def get_all():
+        sql = """
+            SELECT 
+                a.id, a.patient_id, a.doctor_id, a.date, a.time, a.reason, a.status, a.created_at,
+                p.full_name AS patient_name, p.email AS patient_email,
+                u_doc.full_name AS doctor_name, u_doc.email AS doctor_email,
+                d.phone AS doctor_phone,
+                s.name AS specialty_name
+            FROM appointments a
+            JOIN users p ON a.patient_id = p.id
+            JOIN doctors d ON a.doctor_id = d.id
+            JOIN users u_doc ON d.user_id = u_doc.id
+            JOIN specialties s ON d.specialty_id = s.id
+            ORDER BY a.date DESC, a.time DESC
+        """
+        return query_db(sql)
+
+    @staticmethod
     def create(patient_id, doctor_id, date, time, reason=''):
         last_id, _ = execute_db(
             """INSERT INTO appointments (patient_id, doctor_id, date, time, reason, status)
@@ -106,7 +128,15 @@ class Appointment:
             (patient_id, doctor_id, date, time, reason)
         )
         return last_id
-
+    @staticmethod
+    def update(appointment_id, doctor_id, date, time, reason):
+        _, row_count = execute_db(
+            """UPDATE appointments
+               SET doctor_id = ?, date = ?, time = ?, reason = ?
+               WHERE id = ?""",
+            (doctor_id, date, time, reason, appointment_id)
+        )
+        return row_count > 0
     @staticmethod
     def find_by_id(appointment_id):
         sql = """
@@ -160,26 +190,6 @@ class Appointment:
         _, row_count = execute_db(
             "UPDATE appointments SET status = ? WHERE id = ?",
             (status, appointment_id)
-        )
-        return row_count > 0
-
-    @staticmethod
-    def update(appointment_id, doctor_id, date, time, reason):
-        """Update appointment fields (date, time, doctor, reason)."""
-        _, row_count = execute_db(
-            """UPDATE appointments
-               SET doctor_id = ?, date = ?, time = ?, reason = ?
-               WHERE id = ?""",
-            (doctor_id, date, time, reason, appointment_id)
-        )
-        return row_count > 0
-
-    @staticmethod
-    def cancel(appointment_id):
-        """Soft-cancel: set status = CANCELLED instead of deleting the row."""
-        _, row_count = execute_db(
-            "UPDATE appointments SET status = 'CANCELLED' WHERE id = ?",
-            (appointment_id,)
         )
         return row_count > 0
 

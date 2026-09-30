@@ -15,9 +15,6 @@ const Login = () => {
     if (error) setError('');
   };
 
-  const handleQuickLogin = (email, password) => {
-    setFormData({ email, password });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -92,32 +89,6 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="demo-accounts">
-          <p className="demo-title">⚡ Tài khoản dùng thử nhanh (Demo):</p>
-          <div className="demo-buttons">
-            <button
-              type="button"
-              className="btn btn-sm btn-outline"
-              onClick={() => handleQuickLogin('patient.hung@gmail.com', 'Patient@123')}
-            >
-              Bệnh nhân (Patient)
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-outline"
-              onClick={() => handleQuickLogin('doctor.an@clinic.com', 'Doctor@123')}
-            >
-              Bác sĩ (Doctor)
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-outline"
-              onClick={() => handleQuickLogin('admin@clinic.com', 'Admin@123')}
-            >
-              Quản trị (Admin)
-            </button>
-          </div>
-        </div>
 
         <div className="auth-footer">
           Chưa có tài khoản bệnh nhân? <Link to="/register">Đăng ký ngay</Link>

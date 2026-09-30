@@ -162,19 +162,9 @@ def cancel_appointment(current_user, appointment_id):
     if current_user['role'] != 'PATIENT' or appt['patient_id'] != current_user['user_id']:
         return error_response("forbidden", "You can only cancel your own appointments.", status_code=403)
 
-    # Business rule: only PENDING or CONFIRMED appointments can be cancelled
-    if appt['status'] not in ('PENDING', 'CONFIRMED'):
-        return error_response(
-            "validation_failed",
-            f"Không thể hủy lịch hẹn đã ở trạng thái '{appt['status']}'.",
-            {"status": f"Appointment is already {appt['status']}."},
-            status_code=422
-        )
-
-    Appointment.cancel(appointment_id)
+    Appointment.delete(appointment_id)
     return "", 204
 
-# 7b. Edit Appointment (Patient / Owner) - PATCH /api/appointments/<int:appointment_id>
 @api_bp.patch('/appointments/<int:appointment_id>')
 @token_required
 @role_required('PATIENT')
@@ -186,7 +176,6 @@ def edit_appointment(current_user, appointment_id):
     if appt['patient_id'] != current_user['user_id']:
         return error_response("forbidden", "You can only edit your own appointments.", status_code=403)
 
-    # Only PENDING appointments can be edited
     if appt['status'] != 'PENDING':
         return error_response(
             "validation_failed",
@@ -203,13 +192,11 @@ def edit_appointment(current_user, appointment_id):
     if errors:
         return error_response("validation_failed", "The request body is invalid.", errors, status_code=422)
 
-    # Resolve new field values (fall back to existing values if not provided)
     new_doctor_id = int(data['doctor_id']) if 'doctor_id' in data else appt['doctor_id']
     new_date = data.get('date', appt['date']).strip()
     new_time = data.get('time', appt['time']).strip()
     new_reason = data.get('reason', appt['reason'] or '').strip()
 
-    # Check merged date+time is not in the past (Vietnam UTC+7)
     from datetime import datetime as dt, timezone, timedelta
     VN_TZ = timezone(timedelta(hours=7))
     try:
@@ -222,15 +209,8 @@ def edit_appointment(current_user, appointment_id):
                 status_code=422
             )
     except ValueError:
-        pass  # already caught by validate_appointment_update
+        pass
 
-    # Validate new doctor exists (if changed)
-    if new_doctor_id != appt['doctor_id']:
-        doctor = Doctor.find_by_id(new_doctor_id)
-        if not doctor:
-            return error_response("not_found", "Doctor not found.", status_code=404)
-
-    # Check slot conflict (excluding this appointment itself)
     conflict_sql = """
         SELECT id FROM appointments
         WHERE doctor_id = ? AND date = ? AND time = ? AND status != 'CANCELLED' AND id != ?
@@ -382,6 +362,20 @@ def delete_doctor(current_user, doctor_id):
 
     Doctor.delete(doctor_id)
     return "", 204
+
+@api_bp.get('/admin/patients')
+@token_required
+@role_required('ADMIN')
+def get_all_patients(current_user):
+    patients = User.get_all_patients()
+    return jsonify(patients), 200
+
+@api_bp.get('/admin/appointments')
+@token_required
+@role_required('ADMIN')
+def get_all_appointments(current_user):
+    appointments = Appointment.get_all()
+    return jsonify(appointments), 200
 
 # Helper: Get all specialties
 @api_bp.get('/specialties')

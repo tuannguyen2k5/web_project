@@ -14,29 +14,53 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  // Hàm chuyển đổi role tiếng Anh sang tiếng Việt để đồng bộ giao diện
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case 'PATIENT': return 'Bệnh nhân';
+      case 'DOCTOR': return 'Bác sĩ';
+      case 'ADMIN': return 'Quản trị viên';
+      default: return role;
+    }
+  };
+
+  const getBrandLink = () => {
+    if (isAuthenticated) {
+      if (user?.role === 'DOCTOR') return '/doctor/dashboard';
+      if (user?.role === 'ADMIN') return '/admin/dashboard';
+    }
+    return '/';
+  };
+
   return (
     <header className="navbar">
       <div className="navbar-container">
-        <Link to="/" className="navbar-brand">
+        <Link to={getBrandLink()} className="navbar-brand">
           <img src="/images/logo.webp" alt="Logo Group 9" className="brand-logo-img" />
-          <span className="brand-text">Group 9 - Phòng khám đa khoa</span>
+          <span className="brand-text">GROUP 9 - PHÒNG KHÁM ĐA KHOA</span>
         </Link>
 
         <nav className="navbar-menu">
-          <Link
-            to="/"
-            className={`nav-link ${isActive('/') ? 'active' : ''}`}
-          >
-            Trang chủ
-          </Link>
+          {/* TRANG CHỦ & BÁC SĨ: Hiển thị cho Khách và Bệnh nhân (PATIENT). 
+              Ẩn đi đối với Bác sĩ (DOCTOR) và Quản trị viên (ADMIN). */}
+          {user?.role !== 'DOCTOR' && user?.role !== 'ADMIN' && (
+            <>
+              <Link
+                to="/"
+                className={`nav-link ${isActive('/') ? 'active' : ''}`}
+              >
+                Trang chủ
+              </Link>
+              <Link
+                to="/doctors"
+                className={`nav-link ${isActive('/doctors') ? 'active' : ''}`}
+              >
+                Bác sĩ
+              </Link>
+            </>
+          )}
 
-          <Link
-            to="/doctors"
-            className={`nav-link ${isActive('/doctors') ? 'active' : ''}`}
-          >
-            Bác sĩ
-          </Link>
-
+          {/* LỊCH HẸN CỦA TÔI: Dành riêng cho Bệnh nhân */}
           {isAuthenticated && user?.role === 'PATIENT' && (
             <Link
               to="/my-appointments"
@@ -46,6 +70,7 @@ const Navbar = () => {
             </Link>
           )}
 
+          {/* LỊCH KHÁM PHỤ TRÁCH: Dành riêng cho Bác sĩ */}
           {isAuthenticated && user?.role === 'DOCTOR' && (
             <Link
               to="/doctor/dashboard"
@@ -55,6 +80,7 @@ const Navbar = () => {
             </Link>
           )}
 
+          {/* QUẢN TRỊ BÁC SĨ: Dành riêng cho Admin */}
           {isAuthenticated && user?.role === 'ADMIN' && (
             <Link
               to="/admin/dashboard"
@@ -70,7 +96,7 @@ const Navbar = () => {
             <div className="user-profile">
               <span className="user-greeting">
                 Xin chào, <strong>{user?.full_name}</strong>
-                <span className="user-role-badge">{user?.role}</span>
+                <span className="user-role-badge">{getRoleLabel(user?.role)}</span>
               </span>
               <button
                 type="button"

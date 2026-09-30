@@ -2,9 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import Loading from '../components/Loading';
 
+const statusBadges = {
+  PENDING: { label: 'Chờ xác nhận', class: 'badge-pending' },
+  CONFIRMED: { label: 'Đã xác nhận', class: 'badge-confirmed' },
+  COMPLETED: { label: 'Đã khám', class: 'badge-completed' },
+  CANCELLED: { label: 'Đã hủy', class: 'badge-cancelled' }
+};
+
 const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState('doctors');
   const [doctors, setDoctors] = useState([]);
   const [specialties, setSpecialties] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -32,12 +43,16 @@ const AdminDashboard = () => {
     setLoading(true);
     setError('');
     try {
-      const [docData, specData] = await Promise.all([
+      const [docData, specData, patData, apptData] = await Promise.all([
         api.getDoctors(),
-        api.getSpecialties().catch(() => [])
+        api.getSpecialties().catch(() => []),
+        api.getAdminPatients().catch(() => []),
+        api.getAdminAppointments().catch(() => [])
       ]);
       setDoctors(docData || []);
       setSpecialties(specData || []);
+      setPatients(patData || []);
+      setAppointments(apptData || []);
       if (specData && specData.length > 0 && !formData.specialty_id) {
         setFormData((prev) => ({ ...prev, specialty_id: specData[0].id }));
       }
@@ -133,36 +148,50 @@ const AdminDashboard = () => {
     <div className="page-container">
       <div className="page-header flex-between">
         <div>
-          <h2>🛠️ Quản Trị Hệ Thống - Danh Sách Bác Sĩ</h2>
-          <p>Thêm mới bác sĩ, phân chuyên khoa và quản lý nhân sự y tế</p>
+          <h2>Quản Trị Hệ Thống</h2>
+          <p>Quản lý nhân sự y tế, bệnh nhân và lịch hẹn</p>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => setShowAddForm(!showAddForm)}
-        >
-          {showAddForm ? 'Đóng biểu mẫu' : '+ Thêm Bác sĩ Mới'}
-        </button>
+        {activeTab === 'doctors' && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setShowAddForm(!showAddForm)}
+          >
+            {showAddForm ? 'Đóng biểu mẫu' : '+ Thêm Bác sĩ Mới'}
+          </button>
+        )}
       </div>
 
       {/* KPI Stats */}
       <div className="dashboard-stats-grid">
-        <div className="dashboard-stat-card">
+        <div 
+          className={`dashboard-stat-card ${activeTab === 'doctors' ? 'active' : ''}`}
+          onClick={() => setActiveTab('doctors')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-card-title">Tổng số Bác sĩ</div>
           <div className="stat-card-val text-primary">{doctors.length}</div>
-          <div className="stat-card-sub">Nhân sự y tế trong hệ thống</div>
+          <div className="stat-card-sub">Nhân sự y tế</div>
         </div>
 
-        <div className="dashboard-stat-card">
-          <div className="stat-card-title">Chuyên khoa</div>
-          <div className="stat-card-val text-info">{specialties.length}</div>
-          <div className="stat-card-sub">Khoa điều trị được hỗ trợ</div>
+        <div 
+          className={`dashboard-stat-card ${activeTab === 'patients' ? 'active' : ''}`}
+          onClick={() => setActiveTab('patients')}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="stat-card-title">Tổng số Bệnh nhân</div>
+          <div className="stat-card-val text-info">{patients.length}</div>
+          <div className="stat-card-sub">Đã đăng ký hệ thống</div>
         </div>
 
-        <div className="dashboard-stat-card">
-          <div className="stat-card-title">Đang tiếp nhận khám</div>
-          <div className="stat-card-val text-success">{doctors.filter((d) => d.available).length}</div>
-          <div className="stat-card-sub">Bác sĩ sẵn sàng nhận lịch</div>
+        <div 
+          className={`dashboard-stat-card ${activeTab === 'appointments' ? 'active' : ''}`}
+          onClick={() => setActiveTab('appointments')}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="stat-card-title">Tổng Lịch hẹn</div>
+          <div className="stat-card-val text-success">{appointments.length}</div>
+          <div className="stat-card-sub">Trên toàn hệ thống</div>
         </div>
       </div>
 
@@ -172,7 +201,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {showAddForm && (
+      {activeTab === 'doctors' && showAddForm && (
         <div className="card form-card" style={{ marginBottom: '2rem' }}>
           <h3>Thêm Bác Sĩ Mới Vào Hệ Thống</h3>
           {formError && <div className="alert alert-danger">{formError}</div>}
@@ -315,7 +344,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && activeTab === 'doctors' && (
         <div className="card table-card">
           <div className="table-responsive">
             <table className="custom-table">
@@ -353,6 +382,85 @@ const AdminDashboard = () => {
                     </td>
                   </tr>
                 ))}
+                {doctors.length === 0 && (
+                  <tr>
+                    <td colSpan="7" style={{textAlign: 'center'}}>Chưa có bác sĩ nào.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {!loading && !error && activeTab === 'patients' && (
+        <div className="card table-card">
+          <div className="table-responsive">
+            <table className="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Tên Bệnh nhân</th>
+                  <th>Email</th>
+                  <th>Ngày đăng ký</th>
+                </tr>
+              </thead>
+              <tbody>
+                {patients.map((pat) => (
+                  <tr key={pat.id}>
+                    <td>#{pat.id}</td>
+                    <td><strong>{pat.full_name}</strong></td>
+                    <td>{pat.email}</td>
+                    <td>{new Date(pat.created_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+                {patients.length === 0 && (
+                  <tr>
+                    <td colSpan="4" style={{textAlign: 'center'}}>Chưa có bệnh nhân nào.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {!loading && !error && activeTab === 'appointments' && (
+        <div className="card table-card">
+          <div className="table-responsive">
+            <table className="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Bệnh nhân</th>
+                  <th>Bác sĩ</th>
+                  <th>Thời gian</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointments.map((appt) => {
+                  const badge = statusBadges[appt.status] || { label: appt.status, class: 'badge-pending' };
+                  return (
+                    <tr key={appt.id}>
+                      <td>#{appt.id}</td>
+                      <td><strong>{appt.patient_name}</strong><br/><small>{appt.patient_email}</small></td>
+                      <td><strong>{appt.doctor_name}</strong><br/><small>{appt.specialty_name}</small></td>
+                      <td>
+                        📅 {appt.date}<br/>
+                        ⏰ <strong>{appt.time}</strong>
+                      </td>
+                      <td>
+                        <span className={`badge ${badge.class}`}>{badge.label}</span>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {appointments.length === 0 && (
+                  <tr>
+                    <td colSpan="5" style={{textAlign: 'center'}}>Chưa có lịch hẹn nào.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

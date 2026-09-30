@@ -15,6 +15,22 @@ import MyAppointments from './pages/MyAppointments';
 import DoctorDashboard from './pages/DoctorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 
+import { AuthContext } from './context/AuthContext';
+import { useContext } from 'react';
+
+const RootRoute = () => {
+  const { user, isAuthenticated } = useContext(AuthContext);
+  if (isAuthenticated) {
+    if (user?.role === 'ADMIN') {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+    if (user?.role === 'DOCTOR') {
+      return <Navigate to="/doctor/dashboard" replace />;
+    }
+  }
+  return <Home />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -24,7 +40,7 @@ function App() {
           <main className="main-content">
             <Routes>
               {/* Trang chủ */}
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<RootRoute />} />
 
               {/* Public routes */}
               <Route path="/login" element={<Login />} />

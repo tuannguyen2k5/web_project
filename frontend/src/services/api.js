@@ -105,21 +105,18 @@ export const api = {
     }),
 
   // 7. Cancel Appointment (Patient) - DELETE /api/appointments/:id
-  //    Returns 200 { appointment } with status CANCELLED (soft-delete)
   cancelAppointment: (id) =>
     request(`${BASE_URL}/appointments/${id}`, {
       method: 'DELETE',
       headers: getHeaders(true)
     }),
 
-  // 7b. Edit Appointment (Patient) - PATCH /api/appointments/:id
-  //     Only PENDING appointments can be edited.
   updateAppointment: (id, payload) =>
     request(`${BASE_URL}/appointments/${id}`, {
       method: 'PATCH',
       headers: getHeaders(true),
       body: JSON.stringify(payload)
-    }),
+    }),     
 
   // 8. View Appointments (Doctor) - GET /api/doctor/appointments
   getDoctorAppointments: () =>
@@ -147,6 +144,19 @@ export const api = {
   deleteDoctor: (id) =>
     request(`${BASE_URL}/admin/doctors/${id}`, {
       method: 'DELETE',
+      headers: getHeaders(true)
+    }),
+
+  // 11. Manage Patients and Appointments (Admin)
+  getAdminPatients: () =>
+    request(`${BASE_URL}/admin/patients`, {
+      method: 'GET',
+      headers: getHeaders(true)
+    }),
+
+  getAdminAppointments: () =>
+    request(`${BASE_URL}/admin/appointments`, {
+      method: 'GET',
       headers: getHeaders(true)
     }),
 

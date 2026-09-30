@@ -74,7 +74,7 @@ const DoctorDashboard = () => {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h2>👨‍⚕️ Bảng Điều Khiển Bác Sĩ (Doctor Dashboard)</h2>
+          <h2>Thông tin chung</h2>
           <p>Quản lý danh sách bệnh nhân và cập nhật trạng thái các buổi khám</p>
         </div>
       </div>

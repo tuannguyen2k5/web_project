@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import Loading from '../components/Loading';
 import { getDoctorImage } from '../utils/doctorImages';
+import { AuthContext } from '../context/AuthContext';
 
-// 6 bác sĩ tương ứng với 6 chuyên khoa
 const HERO_SLIDES = [
   {
     id: 1,
@@ -80,10 +80,10 @@ const Home = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const { user } = useContext(AuthContext);
   const heroRef = useRef(null);
   const navigate = useNavigate();
 
-  // Tự động chuyển slide sau mỗi 6 giây
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
@@ -113,7 +113,7 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      {/* 1. HERO SLIDER BANNER (NỔI BẬT HÌNH ẢNH BÁC SĨ) */}
+      {/* 1. HERO SLIDER BANNER */}
       <section className="hero-slider-section" ref={heroRef}>
         <div
           className="hero-slider-bg"
@@ -124,7 +124,6 @@ const Home = () => {
 
         <div className="page-container hero-content-wrapper">
           <div className="hero-grid-showcase">
-            {/* Cột trái: Thông điệp & Thông tin bác sĩ slide hiện tại */}
             <div className="hero-content">
               <div className="hero-tag">
                 <span className="pulse-dot"></span>
@@ -136,7 +135,6 @@ const Home = () => {
                 <span className="highlight">Group 9 - Phòng khám đa khoa</span>
               </h1>
 
-              {/* Thông tin nổi bật bác sĩ đang trình chiếu */}
               <div className="hero-doctor-highlight">
                 <div className="doctor-highlight-meta">
                   <span className="badge badge-hero-specialty">{slide.specialty}</span>
@@ -154,24 +152,13 @@ const Home = () => {
 
               <div className="hero-cta-buttons">
                 <Link to={`/book/${slide.id}`} className="btn btn-primary btn-lg shadow-btn">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                  </svg>
                   Đặt khám với {slide.name}
                 </Link>
                 <Link to={`/doctors/${slide.id}`} className="btn btn-hero-outline btn-lg">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
                   Xem thông tin
                 </Link>
               </div>
 
-              {/* Dấu chấm chuyển slide */}
               <div className="hero-dots">
                 {HERO_SLIDES.map((s, idx) => (
                   <button
@@ -179,25 +166,15 @@ const Home = () => {
                     type="button"
                     className={`dot ${idx === currentSlide ? 'active' : ''}`}
                     onClick={() => setCurrentSlide(idx)}
-                    aria-label={`Slide ${idx + 1}: ${s.name}`}
-                    title={`${s.specialty}: ${s.name}`}
                   />
                 ))}
               </div>
             </div>
 
-            {/* Cột phải: KHUNG ẢNH NỔI BẬT BÁC SĨ (HERO DOCTOR SHOWCASE) */}
             <div className="hero-doctor-showcase">
               <div className="doctor-portrait-card">
                 <div className="portrait-image-container">
-                  <img
-                    src={slide.image}
-                    alt={slide.name}
-                    className="doctor-main-image"
-                  />
-                  <div className="portrait-specialty-badge">
-                    <span>{slide.icon}</span> {slide.specialty}
-                  </div>
+                  <img src={slide.image} alt={slide.name} className="doctor-main-image" />
                   <div className="portrait-live-status">
                     <span className="live-dot-green"></span> Đang nhận lịch khám
                   </div>
@@ -210,7 +187,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Hàng thống kê chân Hero */}
           <div className="hero-stats-grid">
             <div className="stat-card">
               <div className="stat-number">6/6</div>
@@ -232,75 +208,72 @@ const Home = () => {
         </div>
       </section>
 
-
-      {/* 3. BÁC SĨ TIÊU BIỂU TỪNG CHUYÊN KHOA */}
-      <section className="section featured-doctors-section">
-        <div className="page-container">
-          <div className="section-header">
-            <div>
-              <span className="sub-title">ĐỘI NGŨ Y BÁC SĨ</span>
-              <h2>Bác Sĩ Phụ Trách Các Chuyên Khoa</h2>
-              <p>Mỗi chuyên khoa tại Group 9 đều được phụ trách bởi bác sĩ chuyên môn vững vàng</p>
+      {/* 3. BÁC SĨ TIÊU BIỂU - ẨN ĐI KHI LÀ BỆNH NHÂN (PATIENT) */}
+      {user?.role !== 'PATIENT' && (
+        <section className="section featured-doctors-section">
+          <div className="page-container">
+            <div className="section-header">
+              <div>
+                <span className="sub-title">ĐỘI NGŨ Y BÁC SĨ</span>
+                <h2>Bác Sĩ Phụ Trách Các Chuyên Khoa</h2>
+                <p>Mỗi chuyên khoa tại Group 9 đều được phụ trách bởi bác sĩ chuyên môn vững vàng</p>
+              </div>
+              <Link to="/doctors" className="btn btn-primary btn-sm">
+                Xem tất cả 6 bác sĩ →
+              </Link>
             </div>
-            <Link to="/doctors" className="btn btn-primary btn-sm">
-              Xem tất cả 6 bác sĩ →
-            </Link>
-          </div>
 
-          {loading ? (
-            <Loading message="Đang tải danh sách bác sĩ..." />
-          ) : (
-            <div className="featured-doctors-grid">
-              {doctors.map((doc) => {
-                const doctorPhoto = getDoctorImage(doc.id);
-                return (
-                  <div key={doc.id} className="card doctor-home-card">
-                    <div className="doctor-home-header">
-                      {doctorPhoto ? (
-                        <img src={doctorPhoto} alt={doc.full_name} className="doctor-thumb-photo" />
-                      ) : (
-                        <div className="avatar-circle">
-                          {doc.full_name ? doc.full_name.charAt(0).toUpperCase() : 'B'}
+            {loading ? (
+              <Loading message="Đang tải danh sách bác sĩ..." />
+            ) : (
+              <div className="featured-doctors-grid">
+                {doctors.map((doc) => {
+                  const doctorPhoto = getDoctorImage(doc.id);
+                  return (
+                    <div key={doc.id} className="card doctor-home-card">
+                      <div className="doctor-home-header">
+                        {doctorPhoto ? (
+                          <img src={doctorPhoto} alt={doc.full_name} className="doctor-thumb-photo" />
+                        ) : (
+                          <div className="avatar-circle">
+                            {doc.full_name ? doc.full_name.charAt(0).toUpperCase() : 'B'}
+                          </div>
+                        )}
+                        <div className="doctor-card-title-group">
+                          <h3 className="doctor-home-name">
+                            <Link to={`/doctors/${doc.id}`}>{doc.full_name}</Link>
+                          </h3>
+                          <span className="badge badge-specialty">{doc.specialty_name}</span>
                         </div>
-                      )}
-                      <div className="doctor-card-title-group">
-                        <h3 className="doctor-home-name">
-                          <Link to={`/doctors/${doc.id}`}>{doc.full_name}</Link>
-                        </h3>
-                        <span className="badge badge-specialty">{doc.specialty_name}</span>
+                      </div>
+
+                      <p className="doctor-home-desc">
+                        {doc.description || 'Bác sĩ chuyên khoa giàu kinh nghiệm và tận tâm với bệnh nhân.'}
+                      </p>
+
+                      <div className="doctor-home-meta">
+                        <span>⏱️ <strong>{doc.experience || 0} năm</strong> kinh nghiệm</span>
+                        {doc.phone && <span>📞 {doc.phone}</span>}
+                      </div>
+
+                      <div className="doctor-home-actions">
+                        <Link to={`/doctors/${doc.id}`} className="btn btn-outline btn-sm">
+                          Xem thông tin
+                        </Link>
+                        <Link to={`/book/${doc.id}`} className="btn btn-primary btn-sm">
+                          Đặt lịch khám
+                        </Link>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
-                    <p className="doctor-home-desc">
-                      {doc.description || 'Bác sĩ chuyên khoa giàu kinh nghiệm và tận tâm với bệnh nhân.'}
-                    </p>
-
-                    <div className="doctor-home-meta">
-                      <span>⏱️ <strong>{doc.experience || 0} năm</strong> kinh nghiệm</span>
-                      {doc.phone && <span>📞 {doc.phone}</span>}
-                    </div>
-
-                    <div className="doctor-home-actions">
-                      <Link
-                        to={`/doctors/${doc.id}`}
-                        className="btn btn-outline btn-sm"
-                        title="Xem thông tin chi tiết bác sĩ"
-                      >
-                        Xem thông tin
-                      </Link>
-                      <Link to={`/book/${doc.id}`} className="btn btn-primary btn-sm">
-                        Đặt lịch khám
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 4. QUY TRÌNH ĐẶT LỊCH 4 BƯỚC */}
+      {/* 4. QUY TRÌNH ĐẶT LỊCH 4 BƯỚC (GIỮ NGUYÊN CHO TẤT CẢ) */}
       <section className="section process-section">
         <div className="page-container">
           <div className="section-header text-center">
@@ -349,23 +322,25 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 5. BANNER KÊU GỌI HÀNH ĐỘNG (CTA) */}
-      <section className="cta-section">
-        <div className="page-container cta-box">
-          <div className="cta-content">
-            <h2>Chăm Sóc Sức Khỏe Cho Bạn & Gia Đình Cùng Group 9</h2>
-            <p>Đăng ký lịch khám ngay hôm nay để nhận được sự tư vấn chu đáo từ các bác sĩ chuyên khoa đầu ngành.</p>
+      {/* 5. BANNER CTA - ẨN KHI LÀ BỆNH NHÂN */}
+      {user?.role !== 'PATIENT' && (
+        <section className="cta-section">
+          <div className="page-container cta-box">
+            <div className="cta-content">
+              <h2>Chăm Sóc Sức Khỏe Cho Bạn & Gia Đình Cùng Group 9</h2>
+              <p>Đăng ký lịch khám ngay hôm nay để nhận được sự tư vấn chu đáo từ các bác sĩ chuyên khoa đầu ngành.</p>
+            </div>
+            <div className="cta-actions">
+              <Link to="/doctors" className="btn btn-primary btn-lg shadow-btn">
+                Xem danh sách bác sĩ
+              </Link>
+              <Link to="/register" className="btn btn-outline btn-lg" style={{ background: '#fff' }}>
+                Đăng ký tài khoản bệnh nhân
+              </Link>
+            </div>
           </div>
-          <div className="cta-actions">
-            <Link to="/doctors" className="btn btn-primary btn-lg shadow-btn">
-              Xem danh sách bác sĩ
-            </Link>
-            <Link to="/register" className="btn btn-outline btn-lg" style={{ background: '#fff' }}>
-              Đăng ký tài khoản bệnh nhân
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 6. FOOTER */}
       <footer className="main-footer">
@@ -376,12 +351,7 @@ const Home = () => {
               <span className="brand-text">Group 9 - Phòng khám đa khoa</span>
             </div>
             <p>Hệ thống đặt lịch khám bệnh trực tuyến hiện đại, kết nối bệnh nhân trực tiếp với các bác sĩ chuyên khoa giàu kinh nghiệm.</p>
-            <div className="hotline-box">
-              <span className="hotline-label">Tổng đài hỗ trợ & đặt hẹn:</span>
-              <span className="hotline-num">1900 6868</span>
-            </div>
           </div>
-
           <div className="footer-col">
             <h4>Liên Kết Nhanh</h4>
             <ul>
@@ -391,29 +361,23 @@ const Home = () => {
               <li><Link to="/register">Đăng ký bệnh nhân</Link></li>
             </ul>
           </div>
-
           <div className="footer-col">
             <h4>Thời Gian Làm Việc</h4>
             <ul>
               <li>Thứ Hai - Thứ Sáu: 07:30 - 20:00</li>
               <li>Thứ Bảy & Chủ Nhật: 08:00 - 17:30</li>
-              <li>Tiếp nhận đặt hẹn online: 24/7</li>
             </ul>
           </div>
-
           <div className="footer-col">
             <h4>Địa Chỉ Phòng Khám</h4>
             <ul>
-              <li>📍 Số 123 Đường Y Dược, Quận Hoàn Kiếm, Hà Nội</li>
-              <li>📧 contact@group9clinic.vn</li>
-              <li>🌐 www.group9clinic.vn</li>
+              <li>📍 Số 123 Đường Y Dược, Hoàn Kiếm, Hà Nội</li>
             </ul>
           </div>
         </div>
-
         <div className="footer-bottom">
           <div className="page-container">
-            <p>© 2026 Group 9 - Phòng khám đa khoa · Nền tảng y tế số thông minh</p>
+            <p>© 2026 Group 9 - Phòng khám đa khoa</p>
           </div>
         </div>
       </footer>
