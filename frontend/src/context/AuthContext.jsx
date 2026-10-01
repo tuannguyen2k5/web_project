@@ -4,10 +4,10 @@ import { api } from '../services/api';
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  const [token, setToken] = useState(() => sessionStorage.getItem('token') || null);
   const [user, setUser] = useState(() => {
     try {
-      const stored = localStorage.getItem('user');
+      const stored = sessionStorage.getItem('user');
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
@@ -18,8 +18,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const res = await api.login({ email, password });
     if (res.token && res.user) {
-      localStorage.setItem('token', res.token);
-      localStorage.setItem('user', JSON.stringify(res.user));
+      sessionStorage.setItem('token', res.token);
+      sessionStorage.setItem('user', JSON.stringify(res.user));
       setToken(res.token);
       setUser(res.user);
       return res.user;
@@ -33,8 +33,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };
