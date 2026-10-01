@@ -24,7 +24,7 @@ const DoctorDetail = () => {
       setDoctor(data);
     } catch (err) {
       if (err.status === 404 || err.code === 'not_found') {
-        setError('Không tìm thấy thông tin bác sĩ yêu cầu (Mã lỗi 404).');
+        setError('Không tìm thấy thông tin bác sĩ yêu cầu.');
       } else {
         setError(err.message || 'Không thể tải thông tin chi tiết bác sĩ.');
       }

@@ -35,7 +35,7 @@ def create_app(test_config=None):
         return jsonify({
             "error": {
                 "code": "bad_request",
-                "message": getattr(e, 'description', 'Bad request.'),
+                "message": getattr(e, 'description', 'Yêu cầu không hợp lệ.'),
                 "details": {}
             }
         }), 400
@@ -45,7 +45,7 @@ def create_app(test_config=None):
         return jsonify({
             "error": {
                 "code": "not_found",
-                "message": getattr(e, 'description', 'Resource not found.'),
+                "message": getattr(e, 'description', 'Không tìm thấy dữ liệu yêu cầu.'),
                 "details": {}
             }
         }), 404
@@ -55,7 +55,7 @@ def create_app(test_config=None):
         return jsonify({
             "error": {
                 "code": "method_not_allowed",
-                "message": "HTTP method not allowed for this endpoint.",
+                "message": "Phương thức yêu cầu không được hỗ trợ.",
                 "details": {}
             }
         }), 405
@@ -65,7 +65,7 @@ def create_app(test_config=None):
         return jsonify({
             "error": {
                 "code": "internal_server_error",
-                "message": "An internal server error occurred.",
+                "message": "Đã có lỗi xảy ra từ hệ thống, vui lòng thử lại sau.",
                 "details": {}
             }
         }), 500

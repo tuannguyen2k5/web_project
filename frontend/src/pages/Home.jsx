@@ -219,7 +219,7 @@ const Home = () => {
                 <p>Mỗi chuyên khoa tại Group 9 đều được phụ trách bởi bác sĩ chuyên môn vững vàng</p>
               </div>
               <Link to="/doctors" className="btn btn-primary btn-sm">
-                Xem tất cả 6 bác sĩ →
+                Xem tất cả bác sĩ →
               </Link>
             </div>
 

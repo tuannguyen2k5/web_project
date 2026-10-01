@@ -37,7 +37,7 @@ def test_book_appointment_duplicate_slot_conflict(client, patient_token, patient
     assert res2.status_code == 409
     data = res2.get_json()
     assert data['error']['code'] == 'appointment_conflict'
-    assert data['error']['message'] == 'This doctor is already booked at this time.'
+    assert data['error']['message'] == 'Bác sĩ đã có lịch hẹn vào khung giờ này. Vui lòng chọn thời gian khác.'
 
 def test_book_appointment_unauthenticated(client):
     res = client.post('/api/appointments', json={

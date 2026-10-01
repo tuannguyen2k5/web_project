@@ -13,88 +13,88 @@ def validate_email(email):
 def validate_register(data):
     errors = {}
     if not isinstance(data, dict):
-        return {"body": "Request body must be a JSON object"}
+        return {"body": "Dữ liệu yêu cầu không hợp lệ."}
 
     full_name = data.get('full_name')
     if not full_name or not isinstance(full_name, str) or not full_name.strip():
-        errors['full_name'] = "Full name is required."
+        errors['full_name'] = "Vui lòng nhập họ và tên."
 
     email = data.get('email')
     if not email:
-        errors['email'] = "Email is required."
+        errors['email'] = "Vui lòng nhập địa chỉ email."
     elif not validate_email(email):
-        errors['email'] = "Invalid email format."
+        errors['email'] = "Địa chỉ email không đúng định dạng."
 
     password = data.get('password')
     if not password:
-        errors['password'] = "Password is required."
+        errors['password'] = "Vui lòng nhập mật khẩu."
     elif not isinstance(password, str) or len(password) < 6:
-        errors['password'] = "Password must be at least 6 characters long."
+        errors['password'] = "Mật khẩu phải có tối thiểu 6 ký tự."
 
     return errors
 
 def validate_login(data):
     errors = {}
     if not isinstance(data, dict):
-        return {"body": "Request body must be a JSON object"}
+        return {"body": "Dữ liệu yêu cầu không hợp lệ."}
 
     email = data.get('email')
     if not email:
-        errors['email'] = "Email is required."
+        errors['email'] = "Vui lòng nhập địa chỉ email."
     elif not validate_email(email):
-        errors['email'] = "Invalid email format."
+        errors['email'] = "Địa chỉ email không đúng định dạng."
 
     password = data.get('password')
     if not password:
-        errors['password'] = "Password is required."
+        errors['password'] = "Vui lòng nhập mật khẩu."
 
     return errors
 
 def validate_appointment(data):
     errors = {}
     if not isinstance(data, dict):
-        return {"body": "Request body must be a JSON object"}
+        return {"body": "Dữ liệu yêu cầu không hợp lệ."}
 
     doctor_id = data.get('doctor_id')
     if doctor_id is None:
-        errors['doctor_id'] = "Doctor ID is required."
+        errors['doctor_id'] = "Vui lòng chọn bác sĩ khám."
     else:
         try:
             val = int(doctor_id)
             if val <= 0:
-                errors['doctor_id'] = "Doctor ID must be a positive integer."
+                errors['doctor_id'] = "Mã bác sĩ không hợp lệ."
         except (ValueError, TypeError):
-            errors['doctor_id'] = "Doctor ID must be an integer."
+            errors['doctor_id'] = "Mã bác sĩ không hợp lệ."
 
     date_str = data.get('date')
     date_valid = False
     if not date_str or not isinstance(date_str, str):
-        errors['date'] = "Appointment date is required."
+        errors['date'] = "Vui lòng chọn ngày khám."
     elif not re.match(DATE_REGEX, date_str):
-        errors['date'] = "Date must be in format YYYY-MM-DD."
+        errors['date'] = "Định dạng ngày khám không hợp lệ."
     else:
         try:
             datetime.strptime(date_str, '%Y-%m-%d')
             date_valid = True
         except ValueError:
-            errors['date'] = "Invalid calendar date."
+            errors['date'] = "Ngày khám không hợp lệ trên lịch."
 
     time_str = data.get('time')
     time_valid = False
     if not time_str or not isinstance(time_str, str):
-        errors['time'] = "Appointment time is required."
+        errors['time'] = "Vui lòng chọn giờ khám."
     elif not re.match(TIME_REGEX, time_str):
-        errors['time'] = "Time must be in format HH:MM."
+        errors['time'] = "Định dạng giờ khám không hợp lệ."
     else:
         try:
             parts = time_str.split(':')
             h, m = int(parts[0]), int(parts[1])
             if not (0 <= h <= 23 and 0 <= m <= 59):
-                errors['time'] = "Invalid time range."
+                errors['time'] = "Khung giờ khám không hợp lệ."
             else:
                 time_valid = True
         except ValueError:
-            errors['time'] = "Invalid time format."
+            errors['time'] = "Giờ khám không đúng định dạng."
 
     # Check that the appointment datetime is not in the past (Vietnam UTC+7)
     if date_valid and time_valid:
@@ -111,49 +111,49 @@ def validate_appointment_update(data):
     """Validate PATCH body for editing an existing appointment."""
     errors = {}
     if not isinstance(data, dict):
-        return {"body": "Request body must be a JSON object"}
+        return {"body": "Dữ liệu yêu cầu không hợp lệ."}
 
     # At least one editable field must be present
     editable = {'doctor_id', 'date', 'time', 'reason'}
     if not any(k in data for k in editable):
-        return {"body": "At least one field (doctor_id, date, time, reason) must be provided."}
+        return {"body": "Vui lòng cung cấp ít nhất một thông tin cần cập nhật."}
 
     doctor_id = data.get('doctor_id')
     if doctor_id is not None:
         try:
             val = int(doctor_id)
             if val <= 0:
-                errors['doctor_id'] = "Doctor ID must be a positive integer."
+                errors['doctor_id'] = "Mã bác sĩ không hợp lệ."
         except (ValueError, TypeError):
-            errors['doctor_id'] = "Doctor ID must be an integer."
+            errors['doctor_id'] = "Mã bác sĩ không hợp lệ."
 
     date_str = data.get('date')
     date_valid = False
     if date_str is not None:
         if not isinstance(date_str, str) or not re.match(DATE_REGEX, date_str):
-            errors['date'] = "Date must be in format YYYY-MM-DD."
+            errors['date'] = "Định dạng ngày khám không hợp lệ."
         else:
             try:
                 datetime.strptime(date_str, '%Y-%m-%d')
                 date_valid = True
             except ValueError:
-                errors['date'] = "Invalid calendar date."
+                errors['date'] = "Ngày khám không hợp lệ trên lịch."
 
     time_str = data.get('time')
     time_valid = False
     if time_str is not None:
         if not isinstance(time_str, str) or not re.match(TIME_REGEX, time_str):
-            errors['time'] = "Time must be in format HH:MM."
+            errors['time'] = "Định dạng giờ khám không hợp lệ."
         else:
             try:
                 parts = time_str.split(':')
                 h, m = int(parts[0]), int(parts[1])
                 if not (0 <= h <= 23 and 0 <= m <= 59):
-                    errors['time'] = "Invalid time range."
+                    errors['time'] = "Khung giờ khám không hợp lệ."
                 else:
                     time_valid = True
             except ValueError:
-                errors['time'] = "Invalid time format."
+                errors['time'] = "Giờ khám không đúng định dạng."
 
     # When both date and time are supplied in the PATCH body, check for past datetime
     if date_valid and time_valid:
@@ -169,56 +169,56 @@ def validate_appointment_update(data):
 def validate_status_update(data):
     errors = {}
     if not isinstance(data, dict):
-        return {"body": "Request body must be a JSON object"}
+        return {"body": "Dữ liệu yêu cầu không hợp lệ."}
 
     status = data.get('status')
     allowed_statuses = {'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'}
     if not status:
-        errors['status'] = "Status is required."
+        errors['status'] = "Vui lòng chọn trạng thái."
     elif status not in allowed_statuses:
-        errors['status'] = f"Status must be one of: {', '.join(sorted(allowed_statuses))}."
+        errors['status'] = "Trạng thái cập nhật không hợp lệ."
 
     return errors
 
 def validate_doctor_create(data):
     errors = {}
     if not isinstance(data, dict):
-        return {"body": "Request body must be a JSON object"}
+        return {"body": "Dữ liệu yêu cầu không hợp lệ."}
 
     full_name = data.get('full_name')
     if not full_name or not isinstance(full_name, str) or not full_name.strip():
-        errors['full_name'] = "Doctor's full name is required."
+        errors['full_name'] = "Vui lòng nhập họ và tên bác sĩ."
 
     email = data.get('email')
     if not email:
-        errors['email'] = "Email is required."
+        errors['email'] = "Vui lòng nhập địa chỉ email."
     elif not validate_email(email):
-        errors['email'] = "Invalid email format."
+        errors['email'] = "Địa chỉ email không đúng định dạng."
 
     password = data.get('password')
     if not password:
-        errors['password'] = "Password is required."
+        errors['password'] = "Vui lòng nhập mật khẩu."
     elif not isinstance(password, str) or len(password) < 6:
-        errors['password'] = "Password must be at least 6 characters long."
+        errors['password'] = "Mật khẩu phải có tối thiểu 6 ký tự."
 
     specialty_id = data.get('specialty_id')
     if specialty_id is None:
-        errors['specialty_id'] = "Specialty ID is required."
+        errors['specialty_id'] = "Vui lòng chọn chuyên khoa."
     else:
         try:
             val = int(specialty_id)
             if val <= 0:
-                errors['specialty_id'] = "Specialty ID must be a positive integer."
+                errors['specialty_id'] = "Mã chuyên khoa không hợp lệ."
         except (ValueError, TypeError):
-            errors['specialty_id'] = "Specialty ID must be an integer."
+            errors['specialty_id'] = "Mã chuyên khoa không hợp lệ."
 
     experience = data.get('experience', 0)
     if experience is not None:
         try:
             val = int(experience)
             if val < 0:
-                errors['experience'] = "Experience must be non-negative."
+                errors['experience'] = "Số năm kinh nghiệm không được âm."
         except (ValueError, TypeError):
-            errors['experience'] = "Experience must be an integer."
+            errors['experience'] = "Số năm kinh nghiệm phải là số nguyên."
 
     return errors

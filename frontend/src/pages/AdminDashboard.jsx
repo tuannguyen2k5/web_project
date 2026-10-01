@@ -131,7 +131,7 @@ const AdminDashboard = () => {
       await api.deleteDoctor(doctor.id);
       setMessage({
         type: 'success',
-        text: `Đã xóa bác sĩ "${doctor.full_name}" thành công (Mã HTTP 204 No Content).`
+        text: `Đã xóa bác sĩ "${doctor.full_name}" thành công.`
       });
       setDoctors((prev) => prev.filter((d) => d.id !== doctor.id));
     } catch (err) {

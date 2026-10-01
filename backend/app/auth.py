@@ -43,7 +43,7 @@ def token_required(f):
             return jsonify({
                 "error": {
                     "code": "unauthorized",
-                    "message": "Authentication token is required.",
+                    "message": "Vui lòng đăng nhập để tiếp tục.",
                     "details": {}
                 }
             }), 401
@@ -53,7 +53,7 @@ def token_required(f):
             return jsonify({
                 "error": {
                     "code": "unauthorized",
-                    "message": "Authorization header must be in format: Bearer <token>",
+                    "message": "Thông tin xác thực không hợp lệ.",
                     "details": {}
                 }
             }), 401
@@ -64,7 +64,7 @@ def token_required(f):
             return jsonify({
                 "error": {
                     "code": "unauthorized",
-                    "message": "Invalid or expired authentication token.",
+                    "message": "Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.",
                     "details": {}
                 }
             }), 401
@@ -85,7 +85,7 @@ def role_required(*allowed_roles):
                 return jsonify({
                     "error": {
                         "code": "forbidden",
-                        "message": f"Access forbidden. Required role: {', '.join(allowed_roles)}.",
+                        "message": "Bạn không có quyền thực hiện thao tác này.",
                         "details": {}
                     }
                 }), 403

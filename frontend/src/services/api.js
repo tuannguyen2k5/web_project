@@ -33,7 +33,7 @@ const handleResponse = async (response) => {
 
   if (!response.ok) {
     const errorObj = data?.error || {};
-    const message = errorObj.message || data?.message || `Request failed with status ${response.status}`;
+    const message = errorObj.message || data?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại sau.';
     const error = new Error(message);
     error.status = response.status;
     error.code = errorObj.code || 'error';
@@ -50,7 +50,7 @@ const request = async (url, options = {}) => {
     return await handleResponse(res);
   } catch (err) {
     if (err.name === 'TypeError' && (err.message.includes('fetch') || err.message.includes('NetworkError'))) {
-      const netErr = new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra Flask server đang chạy.');
+      const netErr = new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
       netErr.code = 'network_error';
       throw netErr;
     }
